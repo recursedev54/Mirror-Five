@@ -46,9 +46,15 @@ class CharacterApp:
         
         # Configure text-to-speech engine
         self.tts_engine = pyttsx3.init()
+        
+        # Set goofy voice effect
+        self.tts_engine.setProperty('rate', 200)  # Speed up the voice
+        self.tts_engine.setProperty('volume', 1)  # Volume level 0-1
+        voices = self.tts_engine.getProperty('voices')
+        self.tts_engine.setProperty('voice', voices[1].id)  # Choose a voice with a higher pitch
 
         # Set the background color using a hex color code
-        hex_color = "#a548E6"  # Light blue color as an example
+        hex_color = "#ADD8E6"  # Light blue color as an example
         self.root.configure(bg=hex_color)
         
         # Tabs
@@ -189,7 +195,7 @@ class CharacterApp:
         self.chat_log.insert(tk.END, f"{self.selected_character.name}: {ai_response}\n")
         self.message_entry.delete(0, tk.END)
         
-        # Text-to-Speech
+        # Text-to-Speech with goofy effect
         self.tts_engine.say(ai_response)
         self.tts_engine.runAndWait()
     

@@ -4,11 +4,18 @@ import json
 import tkinter as tk
 from tkinter import simpledialog, scrolledtext, ttk
 import pyttsx3
+from pydub import AudioSegment
+from pydub.playback import play
+import simpleaudio as sa
 
 def hex_to_rgb(hex_color):
     hex_color = hex_color.lstrip('#')
     lv = len(hex_color)
     return tuple(int(hex_color[i:i+lv//3], 16) for i in range(0, lv, lv//3))
+
+def add_reverb(audio_segment):
+    # Create a reverb effect
+    return audio_segment.low_pass_filter(300).reverse().low_pass_filter(300).reverse()
 
 class Character:
     def __init__(self, name, tagline, description, greeting, definition):
@@ -46,9 +53,13 @@ class CharacterApp:
         
         # Configure text-to-speech engine
         self.tts_engine = pyttsx3.init()
+        self.tts_engine.setProperty('rate', 150)  # Normal speed
+        self.tts_engine.setProperty('volume', 1)  # Volume level 0-1
+        voices = self.tts_engine.getProperty('voices')
+        self.tts_engine.setProperty('voice', voices[1].id)  # Choose a voice with a higher pitch
 
         # Set the background color using a hex color code
-        hex_color = "#a548E6"  # Light blue color as an example
+        hex_color = "#008584"  # Light blue color as an example
         self.root.configure(bg=hex_color)
         
         # Tabs
@@ -190,8 +201,18 @@ class CharacterApp:
         self.message_entry.delete(0, tk.END)
         
         # Text-to-Speech
-        self.tts_engine.say(ai_response)
+        self.tts_engine.save_to_file(ai_response, 'temp_audio.wav')
         self.tts_engine.runAndWait()
+        
+        # Apply reverb effect
+        audio = AudioSegment.from_wav('temp_audio.wav')
+        audio_with_reverb = add_reverb(audio)
+        audio_with_reverb.export('temp_audio_reverb.wav', format='wav')
+        
+        # Play the audio with reverb
+        wave_obj = sa.WaveObject.from_wave_file('temp_audio_reverb.wav')
+        play_obj = wave_obj.play()
+        play_obj.wait_done()
     
     def update_character_listbox(self):
         self.character_listbox.delete(0, tk.END)
